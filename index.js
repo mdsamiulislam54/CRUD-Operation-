@@ -38,18 +38,31 @@ async function run() {
     });
 
     app.get("/user/data", async (req, res) => {
-      const data =  users.find();
+      const data = users.find();
       const UserData = await data.toArray();
       res.send(UserData);
     });
 
-    app.delete('/user/:id', async (req,res)=>{
+    app.get("/user/details/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+
+      const result = await users.findOne(query);
+
+      if (!result) {
+        return res.status(404).send({ message: "User not found" });
+      }
+
+      res.send(result);
+    });
+
+    app.delete("/user/:id", async (req, res) => {
       const userId = req.params.id;
-      const query = {_id: new ObjectId(userId)}
-      const result = await users.deleteOne(query)
-     
-      res.send(result)
-    })
+      const query = { _id: new ObjectId(userId) };
+      const result = await users.deleteOne(query);
+
+      res.send(result);
+    });
 
     await client.db("admin").command({ ping: 1 });
     console.log("Successfully connected to MongoDB");
