@@ -14,7 +14,7 @@ app.use(express.json());
 const url =
   "mongodb+srv://project-1:pvxM4lAl79rmGiY2@cluster0.jecu5rj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
-const client = new MongoClient(url, {
+const client = new MongoClient(url, { 
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -26,11 +26,11 @@ async function run() {
   try {
     await client.connect();
     const database = client.db("userDB");
-    const users = database.collection("users");
+    const usersCollection = database.collection("users");
 
     app.post("/users", async (req, res) => {
       const newUser = req.body;
-      const result = await users.insertOne(newUser);
+      const result = await usersCollection.insertOne(newUser);
       res.send(result);
       console.log(`A document was inserted with the _id: ${result.insertedId}`);
 
@@ -38,7 +38,7 @@ async function run() {
     });
 
     app.get("/user/data", async (req, res) => {
-      const data = users.find();
+      const data = usersCollection.find();
       const UserData = await data.toArray();
       res.send(UserData);
     });
@@ -47,7 +47,7 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
 
-      const result = await users.findOne(query);
+      const result = await usersCollection.findOne(query);
 
       if (!result) {
         return res.status(404).send({ message: "User not found" });
@@ -56,10 +56,30 @@ async function run() {
       res.send(result);
     });
 
+    app.put('/user/update/:id', async (req,res)=>{
+      const id = req.params.id;
+   
+      const query = {_id:new ObjectId(id)};
+
+      const updateData = req.body
+     
+
+      const updateDoc = {
+        $set:{
+          name:updateData.name,
+          email:updateData.email
+        }
+      }
+
+      const result = await usersCollection.updateOne(query,updateDoc)
+
+      res.send(result)
+    })
+
     app.delete("/user/:id", async (req, res) => {
       const userId = req.params.id;
       const query = { _id: new ObjectId(userId) };
-      const result = await users.deleteOne(query);
+      const result = await usersCollection.deleteOne(query);
 
       res.send(result);
     });
